@@ -39,15 +39,14 @@ function extract(file){
             for(let list of targetList){
                 if((title.toLowerCase()).includes(list)) {
                     let tempArr = []
-
+                    // j max count is too high, from the performance perspective this code is to be corrected later
                     for(let j=2; j<10000; j++){
-
                         let val = sheet.row(j).cell(i).value()
-                        // if(val === undefined) break
                         tempArr.push(val)
                     }
 
                     tempObj[title] = tempArr
+                    // here tempArr is initialized, don't forget about this
                     tempArr = []
                 }
             }   
@@ -55,13 +54,14 @@ function extract(file){
 
         const propForDelete = 'G31_13 (Страна происхождения)'
         delete tempObj[propForDelete]
-        
+        // you cannot have access to file variable on the next then(), herewith add it to tempObj
         tempObj["fileName"] = file
         
         return tempObj
-            
+
     }).then(tempObj => {
         XlsxPopulate.fromBlankAsync()
+            // here you cannot use workbook because it's used above already
             .then(workbook2 => {
                 let newfileName = (tempObj["fileName"]).split("\\").slice(-1)[0]
 
@@ -91,6 +91,7 @@ function extract(file){
                     if( (title.toLowerCase()).includes("usdkg") ) idxOfTitle=16
                     if( (title.toLowerCase()).includes("код товара по тн") ) {
                         idxOfTitle=17
+                        // on excel this tax number is shown as "string", so here we convert str to num on beforehand
                         tempObj[title] = tempObj[title].map(ele => {
                             return parseInt(ele)
                         })
@@ -117,7 +118,7 @@ function main() {
     const files = fs.readdirSync("./input")
     
     for(let file of files){
-        let year = file.includes("2023") ? 2023 : 2022
+        let year = file.includes("2023") ? 2023 : 2022 // need to be corrected when new year comes...
         let relPath = year === 2023 ? path.join("2023", "original", file) : path.join("2022", "original", file)
         extract(relPath)
     }
